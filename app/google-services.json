@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "648526834511",
+    "project_id": "ejemplo-proyecto-ddbb",
+    "storage_bucket": "ejemplo-proyecto-ddbb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:648526834511:android:00a32c1531a39d9cfe733a",
+        "android_client_info": {
+          "package_name": "com.example.apk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmFoAl3rML0yPdbyykEy0SUKApCulsQmU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#F9ECE3"
+    android:id="@+id/home"
+    tools:context=".View.RegActivity">
+
+
+    <EditText
+        android:id="@+id/editTextContra"
+        android:layout_width="296dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="88dp"
+        android:background="@drawable/fondotxt"
+        android:ems="10"
+        android:hint="Ingrese su contraseña"
+        android:inputType="textPassword"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTxtEmail"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/editTxtNombre"
+        android:layout_width="296dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="116dp"
+        android:background="@drawable/fondotxt"
+        android:ems="10"
+        android:hint="Ingrese su nombre"
+        android:inputType="text"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/editTxtEmail"
+        android:layout_width="296dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="60dp"
+        android:background="@drawable/fondotxt"
+        android:ems="10"
+        android:hint="Ingrese su email"
+        android:inputType="textEmailAddress"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTxtNombre"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/btnRegistro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#70BFCD"
+        android:backgroundTint="#70BFCD"
+        android:text="Registro"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTxtFechaNaci"
+        app:layout_constraintVertical_bias="0.32"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/editTxtFechaNaci"
+        android:layout_width="206dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="68dp"
+        android:ems="10"
+        android:inputType="date"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextContra"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/btnFechaNaci"
+        android:layout_width="73dp"
+        android:layout_height="39dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/fondotxt"
+        android:text="Fecha"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.308"
+        app:layout_constraintStart_toEndOf="@+id/editTxtFechaNaci"
+        app:layout_constraintTop_toBottomOf="@+id/editTextContra"
+        app:layout_constraintVertical_bias="0.239"
+        tools:ignore="MissingConstraints" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
