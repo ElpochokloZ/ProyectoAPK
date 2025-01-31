@@ -11,7 +11,6 @@ import com.example.apk.ViewModel.AuthViewModel
 import com.example.apk.databinding.ActivityAuthBinding
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -21,6 +20,8 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAuthBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var viewModel: AuthViewModel
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,10 +38,9 @@ class AuthActivity : AppCompatActivity() {
         analytics.logEvent("InitScreen", bundle)
 
 
-       //Instanciacion de FireBaseAuth y AuthViewModel
-       firebaseAuth = Firebase.auth
-        viewModel=ViewModelProvider(this)[AuthViewModel::class.java]
-
+        //ejecucion del click al darle el boton para pasar a otro fragment REGISTRO
+        firebaseAuth = Firebase.auth
+        viewModel= ViewModelProvider(this)[AuthViewModel::class.java]
 
         binding.txtRegistro.setOnClickListener{
             try {
@@ -52,43 +52,44 @@ class AuthActivity : AppCompatActivity() {
 
         }
 
+        //ejecucion del click al darle el boton para pasar a otro fragment INICIO SESION
+
         binding.btnInicioSesion.setOnClickListener{
             val email = binding.editTextTextEmailAddress.text.toString().trim()
             val pass = binding.editTextTextPassword.text.toString().trim()
 
-
-
-            if (email.isNotEmpty() && pass.isNotEmpty()) {
-                firebaseAuth.signInWithEmailAndPassword(email, pass).addOnCompleteListener{ task->
-                    if (task.isSuccessful) {
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                    } else {
-                        Log.e("LoginError", " ${task.exception?.message}")
-                        Toast.makeText(this,  "Error desconocido ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(this, "NO SE ACEPTAN CAMPOS VACIOS", Toast.LENGTH_SHORT).show()
+            if (email.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(this, "Email and password are required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener // Stop execution if fields are empty
             }
+
+            viewModel.login(email, pass)
         }
 
         viewModel.authStatus.observe(this) { status ->
             val (isSuccess, message) = status
             if (isSuccess) {
-                Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish() // Close AuthActivity so the user can't go back
             } else {
-                Toast.makeText(this, "Error: $message", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Login failed: $message", Toast.LENGTH_SHORT).show()
             }
         }
 
-     /*    fun onStart() {
+        viewModel.fieldErrors.observe(this) { errorMessage ->
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        }
+
+
+        fun onStart() {
             super.onStart()
 
             if(firebaseAuth.currentUser != null){
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
+                finish()
             }
-        }*/
+        }
     }
 }

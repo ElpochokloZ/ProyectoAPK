@@ -7,7 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 class FireBaseAutenticacion {
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    fun registerUser(email: String, password: String, callback: (Boolean, String?) -> Unit) {
+    fun registerUser(email: String, password: String, callback: (Boolean, String?) -> Unit){
         firebaseAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener{ task->
                 if (task.isSuccessful){

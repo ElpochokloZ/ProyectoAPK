@@ -26,24 +26,25 @@ class AuthViewModel : ViewModel() {
             return
         }
 
-        authRepository.registerUser(email, password) { isSuccess, message ->
+        authRepository.registerUser(user.email, user.password) { isSuccess, message ->
             authStatus.postValue(Pair(isSuccess, message))
         }
     }
 
-    fun login(email: String, password: String):Result<Unit>{
+    fun login(email: String, password: String){
         val user = User(email, password)
 
         if (!user.isValidEmail()) {
             fieldErrors.postValue("El correo no es válido")
+            return
         }
         if (!user.isValidPassword()) {
             fieldErrors.postValue("La contraseña debe tener al menos 6 caracteres")
+            return
         }
 
-        authRepository.loginUser(email, password) { isSuccess, message ->
+        authRepository.loginUser(user.email, user.password) { isSuccess, message ->
             authStatus.postValue(Pair(isSuccess, message))
         }
-        return TODO("Provide the return value")
     }
 }
