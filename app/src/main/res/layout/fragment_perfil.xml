@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F9ECE3"
+    tools:context=".View.Perfil">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:text="ESTA ES LA PESTAÑA PERFIL" />
+
+    <Button
+        android:id="@+id/btnlogout"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:background="@android:color/holo_green_dark"
+        android:text="Cerrar Sesion"
+        app:cornerRadius="25dp" />
+
+    <TextView
+        android:id="@+id/txtViewMail"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:layout_marginTop="150dp"
+        android:gravity="center"
+        android:text="Mail Usuario" />
+
+</FrameLayout>
