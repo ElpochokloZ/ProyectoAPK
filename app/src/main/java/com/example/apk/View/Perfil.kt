@@ -30,7 +30,8 @@ class Perfil : Fragment() {
 
         // Mostrar el correo del usuario en el TextView
         user?.let {
-            obtenerDatosUser (it.uid) // Llamar a la función para obtener datos del usuario
+            // Usar el correo electrónico como el ID del documento
+            obtenerDatosUser (it.email ?: "") // Llamar a la función para obtener datos del usuario
         } ?: run {
             binding.txtViewMail.text = "No hay usuario conectado" // Mensaje alternativo
         }
@@ -43,21 +44,19 @@ class Perfil : Fragment() {
         return binding.root // Devolver la vista inflada
     }
 
-    private fun obtenerDatosUser (uid: String) {
+    private fun obtenerDatosUser (email: String) {
         val db = FirebaseFirestore.getInstance()
-        val documentoRef = db.collection("usuarios").document(uid)
+        val documentoRef = db.collection("usuarios").document(email)
 
         documentoRef.get()
             .addOnSuccessListener { document ->
-                if (document != null) {
+                if (document != null && document.exists()) {
                     val nombre = document.getString("nombre") // Asegúrate de que el campo "nombre" existe en tu documento
                     val email = document.getString("email") // Asegúrate de que el campo "email" existe en tu documento
 
                     // Asignar los datos obtenidos a los TextViews
-                    binding.txtNombrePerfil.text = nombre.toString()
-                    binding.txtViewMail.text = email.toString()
-                    // Si tienes un TextView para la fecha de nacimiento, también puedes asignarlo aquí
-                    // binding.txtFechaNacimiento.text = fechaNacimiento ?: "Fecha no disponible"
+                    binding.txtNombrePerfil.text = nombre ?: "Nombre no disponible"
+                    binding.txtViewMail.text = email ?: "Email no disponible"
                 } else {
                     println("No se encontró el documento")
                 }

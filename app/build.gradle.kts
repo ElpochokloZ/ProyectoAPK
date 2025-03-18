@@ -55,6 +55,9 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
     implementation ("com.google.android.material:material:1.9.0")
 
+    //implementacion maps
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

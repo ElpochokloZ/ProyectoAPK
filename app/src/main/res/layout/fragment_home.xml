@@ -1,35 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9ECE3"
-    tools:context=".View.Home">
-
-    <!-- TODO: Update blank fragment layout -->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="ESTA ES LA PESTAÑA HOME" />
-
-    <Button
-        android:id="@+id/button"
-        android:layout_width="128dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="150dp"
-        android:text="Gestion tareas"
-        android:background="@drawable/fondotxt"/>
-
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="137dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="300dp"
-        android:text="Agregar tareas"
-        android:background="@drawable/fondotxt"/>
-
-</FrameLayout>
+    tools:context=".View.Home" />
