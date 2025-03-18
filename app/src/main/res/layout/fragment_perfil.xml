@@ -5,31 +5,90 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F9ECE3"
+    android:orientation="vertical"
     tools:context=".View.Perfil">
 
     <!-- TODO: Update blank fragment layout -->
+
+
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="ESTA ES LA PESTAÑA PERFIL" />
+        android:text="ESTA ES LA PESTAÑA PERFIL"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="28dp"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/txtViewMail"
+        android:layout_width="130dp"
+        android:layout_height="26dp"
+        android:layout_marginLeft="180dp"
+        android:layout_marginTop="60dp"
+        android:text="Mail Usuario"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="202dp"
+        tools:layout_editor_absoluteY="131dp" />
 
     <Button
         android:id="@+id/btnlogout"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
+        android:layout_width="163dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|center_vertical"
+        android:layout_gravity="left"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="175dp"
         android:background="@android:color/holo_green_dark"
         android:text="Cerrar Sesion"
-        app:cornerRadius="25dp" />
+        app:cornerRadius="50dp"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="216dp"
+        tools:layout_editor_absoluteY="28dp" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="117dp"
+        android:layout_height="106dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="50dp"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="26dp"
+        tools:layout_editor_absoluteY="89dp"
+        tools:src="@tools:sample/avatars" />
 
     <TextView
-        android:id="@+id/txtViewMail"
+        android:id="@+id/txtUbicacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="180dp"
+        android:layout_marginTop="100dp"
+        android:text="Ubicacion"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="202dp"
+        tools:layout_editor_absoluteY="171dp" />
+
+    <View
+        android:id="@+id/divider"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:layout_marginTop="150dp"
-        android:gravity="center"
-        android:text="Mail Usuario" />
+        android:layout_height="1dp"
+        android:layout_marginTop="250dp"
+        android:background="?android:attr/listDivider" />
+
+    <TextView
+        android:id="@+id/txtDescripcion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="255dp"
+        android:text="Descripcion" />
+
+    <TextView
+        android:id="@+id/txtNombrePerfil"
+        android:layout_width="130dp"
+        android:layout_height="26dp"
+        android:layout_marginLeft="180dp"
+        android:layout_marginTop="120dp"
+        android:text="Nombre" />
 
 </FrameLayout>

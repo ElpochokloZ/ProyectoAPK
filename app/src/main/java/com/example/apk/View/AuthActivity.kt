@@ -21,22 +21,16 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var viewModel: AuthViewModel
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAuthBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
-
 
         //Analitycs events
         val analytics:FirebaseAnalytics = FirebaseAnalytics.getInstance(this)
         val bundle = Bundle()
         bundle.putString("message","Integracion de firebase completa")
         analytics.logEvent("InitScreen", bundle)
-
 
         //ejecucion del click al darle el boton para pasar a otro fragment REGISTRO
         firebaseAuth = Firebase.auth
@@ -53,14 +47,13 @@ class AuthActivity : AppCompatActivity() {
         }
 
         //ejecucion del click al darle el boton para pasar a otro fragment INICIO SESION
-
         binding.btnInicioSesion.setOnClickListener{
             val email = binding.editTextTextEmailAddress.text.toString().trim()
             val pass = binding.editTextTextPassword.text.toString().trim()
 
             if (email.isEmpty() || pass.isEmpty()) {
                 Toast.makeText(this, "Email and password are required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener // Stop execution if fields are empty
+                return@setOnClickListener // para ejecucion si los campos estan vacios
             }
 
             viewModel.login(email, pass)
@@ -71,7 +64,7 @@ class AuthActivity : AppCompatActivity() {
             if (isSuccess) {
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
-                finish() // Close AuthActivity so the user can't go back
+                finish() // Cierra AuthActivity para no volver atras
             } else {
                 Toast.makeText(this, "Login failed: $message", Toast.LENGTH_SHORT).show()
             }
@@ -81,15 +74,15 @@ class AuthActivity : AppCompatActivity() {
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
-
         fun onStart() {
             super.onStart()
-
             if(firebaseAuth.currentUser != null){
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
                 finish()
             }
         }
+
+
     }
 }

@@ -2,38 +2,39 @@ package com.example.apk.View
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.apk.ViewModel.AuthViewModel
 import com.example.apk.databinding.ActivityRegBinding
-import com.google.firebase.auth.FirebaseAuth
-
 
 class RegActivity : AppCompatActivity() {
-    lateinit var binding: ActivityRegBinding
-    lateinit var viewModel: AuthViewModel
+    private lateinit var binding: ActivityRegBinding
+    private lateinit var viewModel: AuthViewModel
+    private val TAG = "RegActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //inicializar ViewBinding
+        // Inicializar ViewBinding
         binding = ActivityRegBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         binding.btnRegistro.setOnClickListener {
-
             val email = binding.editTxtEmail.text.toString().trim()
             val password = binding.editTextContra.text.toString().trim()
+            val nombre = binding.editTxtNombre.text.toString().trim()
+            val fechaNacimiento = binding.editTxtFechaNaci.text.toString().trim()
 
+            // Validaciones
             if (email.isEmpty()) {
                 binding.editTxtEmail.error = "El correo es obligatorio"
                 binding.editTxtEmail.requestFocus()
                 return@setOnClickListener
-
             }
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -48,9 +49,11 @@ class RegActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            viewModel.register(email, password)
+            // Llamar al metodo de registro en el ViewModel
+            viewModel.register(email, password, nombre, fechaNacimiento)
         }
 
+        // Observadores de LiveData
         viewModel.authStatus.observe(this) { status ->
             val (isSuccess, message) = status
             if (isSuccess) {
@@ -62,8 +65,9 @@ class RegActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error: $message", Toast.LENGTH_SHORT).show()
             }
         }
+
         viewModel.fieldErrors.observe(this) { errorMessage ->
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
         }
-       }
+    }
 }

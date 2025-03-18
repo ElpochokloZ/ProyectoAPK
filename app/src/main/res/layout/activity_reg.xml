@@ -11,90 +11,134 @@
 
 
     <EditText
-        android:id="@+id/editTextContra"
-        android:layout_width="296dp"
-        android:layout_height="38dp"
-        android:layout_marginTop="88dp"
-        android:background="@drawable/fondotxt"
-        android:ems="10"
-        android:hint="Ingrese su contraseña"
-        android:inputType="textPassword"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTxtEmail"
-        tools:ignore="MissingConstraints" />
-
-    <EditText
         android:id="@+id/editTxtNombre"
         android:layout_width="296dp"
         android:layout_height="38dp"
-        android:layout_marginTop="116dp"
+        android:layout_marginTop="224dp"
         android:background="@drawable/fondotxt"
         android:ems="10"
         android:hint="Ingrese su nombre"
         android:inputType="text"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintHorizontal_bias="0.417"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/txtContra"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contraseña"
+        tools:layout_editor_absoluteX="50dp"
+        tools:layout_editor_absoluteY="355dp" />
+
+    <EditText
+        android:id="@+id/editTextContra"
+        android:layout_width="296dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/fondotxt"
+        android:ems="10"
+        android:hint="Ingrese su contraseña"
+        android:inputType="textPassword"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.434"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTxtEmail"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/txtNacimiento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha de nacimiento"
+        tools:layout_editor_absoluteX="52dp"
+        tools:layout_editor_absoluteY="436dp"
         tools:ignore="MissingConstraints" />
 
     <EditText
         android:id="@+id/editTxtEmail"
         android:layout_width="296dp"
         android:layout_height="38dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="36dp"
         android:background="@drawable/fondotxt"
         android:ems="10"
         android:hint="Ingrese su email"
         android:inputType="textEmailAddress"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.434"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTxtNombre"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/txtEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Email"
+        tools:layout_editor_absoluteX="50dp"
+        tools:layout_editor_absoluteY="271dp" />
+
+    <Button
+        android:id="@+id/btnFechaNaci"
+        android:layout_width="101dp"
+        android:layout_height="39dp"
+        android:layout_marginStart="8dp"
+        android:text="Fecha"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.27"
+        app:layout_constraintStart_toEndOf="@+id/editTxtFechaNaci"
+        app:layout_constraintTop_toBottomOf="@+id/editTextContra"
+        app:layout_constraintVertical_bias="0.225"
         tools:ignore="MissingConstraints" />
 
     <Button
         android:id="@+id/btnRegistro"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#70BFCD"
-        android:backgroundTint="#70BFCD"
         android:text="Registro"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.561"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTxtFechaNaci"
-        app:layout_constraintVertical_bias="0.32"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintVertical_bias="0.388" />
 
     <EditText
+
         android:id="@+id/editTxtFechaNaci"
         android:layout_width="206dp"
         android:layout_height="44dp"
-        android:layout_marginStart="56dp"
-        android:layout_marginTop="68dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="24dp"
         android:ems="10"
         android:inputType="date"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextContra"
         tools:ignore="MissingConstraints" />
 
-    <Button
-        android:id="@+id/btnFechaNaci"
-        android:layout_width="73dp"
-        android:layout_height="39dp"
-        android:layout_marginStart="8dp"
-        android:background="@drawable/fondotxt"
-        android:text="Fecha"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.308"
-        app:layout_constraintStart_toEndOf="@+id/editTxtFechaNaci"
-        app:layout_constraintTop_toBottomOf="@+id/editTextContra"
-        app:layout_constraintVertical_bias="0.239"
-        tools:ignore="MissingConstraints" />
+    <TextView
+        android:id="@+id/txtNombre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:text="Nombre"
+        tools:layout_editor_absoluteX="48dp"
+        tools:layout_editor_absoluteY="195dp" />
+
+    <TextView
+        android:id="@+id/tztCrear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:text="Crear una Cuenta"
+        android:textSize="48sp"
+        tools:layout_editor_absoluteX="25dp"
+        tools:layout_editor_absoluteY="73dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

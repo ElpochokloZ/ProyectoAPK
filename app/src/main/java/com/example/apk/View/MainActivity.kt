@@ -24,8 +24,6 @@ class MainActivity : AppCompatActivity(){
                 R.id.ajustes -> replaceFragment(Ajustes())
 
                 else ->{
-
-
                 }
             }
             true
