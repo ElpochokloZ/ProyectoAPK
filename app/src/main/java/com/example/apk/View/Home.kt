@@ -1,5 +1,7 @@
 package com.example.apk.View
 
+import android.Manifest
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -8,10 +10,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.apk.R
+import com.example.apk.databinding.FragmentHomeBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -19,6 +21,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ServerTimestamp
 import com.google.firebase.firestore.ktx.firestore
@@ -31,9 +34,11 @@ class Home : Fragment(), OnMapReadyCallback,
     GoogleMap.OnMapLongClickListener,
     GoogleMap.OnMarkerClickListener {
 
+    private lateinit var binding: FragmentHomeBinding
     private lateinit var map: GoogleMap
     private lateinit var firestore: FirebaseFirestore
     private val markers = mutableListOf<Marker>()
+    private val auth = FirebaseAuth.getInstance()
 
     companion object {
         const val REQUEST_CODE_LOCATION = 0
@@ -46,6 +51,7 @@ class Home : Fragment(), OnMapReadyCallback,
         val longitude: Double = 0.0,
         val title: String = "Nuevo marcador",
         val snippet: String = "",
+        val userId: String = "", // Para asociar marcadores a usuarios
         @ServerTimestamp val createdAt: Date? = null
     )
 
@@ -53,23 +59,35 @@ class Home : Fragment(), OnMapReadyCallback,
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_home, container, false)
+    ): View {
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // Inicializar Firestore
         firestore = Firebase.firestore
 
+        binding.fabMenu.setOnClickListener {
+            val mainActivity = activity as? MainActivity
+            if (mainActivity != null) {
+                mainActivity.openDrawer()
+            } else {
+                Toast.makeText(requireContext(), "Error al abrir el menú", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         // Configurar el mapa
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-        return view
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        // Configurar listeners
+        // Configurar listeners del mapa
         with(map) {
             setOnMyLocationButtonClickListener(this@Home)
             setOnMyLocationClickListener(this@Home)
@@ -78,13 +96,13 @@ class Home : Fragment(), OnMapReadyCallback,
         }
 
         enableLocation()
-        loadMarkers()
+        loadUserMarkers()
     }
 
-    // Métodos de ubicación (se mantienen igual con pequeñas mejoras)
+    // Métodos de ubicación
     private fun isLocationPermissionGranted() = ContextCompat.checkSelfPermission(
         requireContext(),
-        android.Manifest.permission.ACCESS_FINE_LOCATION
+        Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
     private fun enableLocation() {
@@ -101,11 +119,11 @@ class Home : Fragment(), OnMapReadyCallback,
     }
 
     private fun requestLocationPermission() {
-        if (shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-            showToast("Ve a ajustes y acepta los permisos de ubicación")
+        if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            showToast("Necesitas aceptar los permisos de ubicación")
         } else {
             requestPermissions(
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 REQUEST_CODE_LOCATION
             )
         }
@@ -123,21 +141,13 @@ class Home : Fragment(), OnMapReadyCallback,
                         enableLocation()
                     }
                 } else {
-                    showToast("Para activar la localización, ve a ajustes y acepta los permisos")
+                    showToast("Para usar esta función necesitas activar los permisos de ubicación")
                 }
             }
-            else -> {}
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (::map.isInitialized && isLocationPermissionGranted()) {
-            enableLocation()
-        }
-    }
-
-    // Métodos para manejar marcadores (nuevos)
+    // Métodos para manejar marcadores
     override fun onMapLongClick(latLng: LatLng) {
         showAddMarkerDialog(latLng)
     }
@@ -154,12 +164,16 @@ class Home : Fragment(), OnMapReadyCallback,
                 val title = editTitle.text.toString()
                 val snippet = editSnippet.text.toString()
 
-                saveMarker(MapMarker(
-                    latitude = latLng.latitude,
-                    longitude = latLng.longitude,
-                    title = title.ifEmpty { "Marcador ${markers.size + 1}" },
-                    snippet = snippet
-                ))
+                auth.currentUser?.uid?.let { userId ->
+                    val marker = MapMarker(
+                        latitude = latLng.latitude,
+                        longitude = latLng.longitude,
+                        title = title.ifEmpty { "Marcador ${markers.size + 1}" },
+                        snippet = snippet,
+                        userId = userId
+                    )
+                    saveMarker(marker)
+                }
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -181,17 +195,20 @@ class Home : Fragment(), OnMapReadyCallback,
             }
     }
 
-    private fun loadMarkers() {
-        firestore.collection(MARKERS_COLLECTION)
-            .get()
-            .addOnSuccessListener { result ->
-                result.forEach { doc ->
-                    doc.toObject(MapMarker::class.java).let { addMarkerToMap(it) }
+    private fun loadUserMarkers() {
+        auth.currentUser?.uid?.let { userId ->
+            firestore.collection(MARKERS_COLLECTION)
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener { result ->
+                    result.forEach { doc ->
+                        doc.toObject(MapMarker::class.java).let { addMarkerToMap(it) }
+                    }
                 }
-            }
-            .addOnFailureListener { e ->
-                showToast("Error al cargar marcadores: ${e.message}")
-            }
+                .addOnFailureListener { e ->
+                    showToast("Error al cargar marcadores: ${e.message}")
+                }
+        }
     }
 
     private fun addMarkerToMap(mapMarker: MapMarker) {
@@ -237,9 +254,9 @@ class Home : Fragment(), OnMapReadyCallback,
         }
     }
 
-    // Métodos originales de ubicación (sin cambios)
+    // Métodos de la interfaz del mapa
     override fun onMyLocationButtonClick(): Boolean {
-        showToast("Botón de ubicación pulsado")
+        showToast("Centrando en tu ubicación...")
         return false
     }
 
@@ -250,5 +267,12 @@ class Home : Fragment(), OnMapReadyCallback,
     // Método de ayuda
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::map.isInitialized && isLocationPermissionGranted()) {
+            enableLocation()
+        }
     }
 }

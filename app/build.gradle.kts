@@ -58,6 +58,15 @@ dependencies {
     //implementacion maps
     implementation("com.google.android.gms:play-services-maps:18.1.0")
 
+    //implementacion nav.bar
+    // Navigation Component
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
+
+    //Material Design
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.cardview:cardview:1.0.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
