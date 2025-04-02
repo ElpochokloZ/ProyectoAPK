@@ -31,6 +31,7 @@
         </activity>
         <activity android:name=".View.RegActivity" />
         <activity android:name=".View.MainActivity"/>
+        <activity android:name=".View.RecuperarContraActivity" />
     </application>
 
 </manifest>

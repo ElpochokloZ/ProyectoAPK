@@ -7,70 +7,82 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.example.apk.ViewModel.AuthViewModel
 import com.example.apk.databinding.FragmentPerfilBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
 
 class Perfil : Fragment() {
     private lateinit var binding: FragmentPerfilBinding
-    private lateinit var firebaseAuth: FirebaseAuth
-    private var user: FirebaseUser ? = null
+    private lateinit var authViewModel: AuthViewModel
+    private val currentUserEmail get() = FirebaseAuth.getInstance().currentUser?.email
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflar el layout y obtener la instancia de binding
         binding = FragmentPerfilBinding.inflate(inflater, container, false)
+        authViewModel = ViewModelProvider(requireActivity())[AuthViewModel::class.java]
+        return binding.root
+    }
 
-        // Inicializar FirebaseAuth y obtener el usuario actual
-        firebaseAuth = FirebaseAuth.getInstance()
-        user = firebaseAuth.currentUser
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        // Mostrar el correo del usuario en el TextView
-        user?.let {
-            // Usar el correo electrónico como el ID del documento
-            obtenerDatosUser (it.email ?: "") // Llamar a la función para obtener datos del usuario
+        setupUserData()
+        setupListeners()
+        setupObservers()
+    }
+
+    private fun setupUserData() {
+        currentUserEmail?.let { email ->
+            binding.txtViewMail.text = email
+            loadUserData(email)
         } ?: run {
-            binding.txtViewMail.text = "No hay usuario conectado" // Mensaje alternativo
+            binding.txtViewMail.text = "No autenticado"
+            Toast.makeText(context, "Debes iniciar sesión", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadUserData(email: String) {
+        authViewModel.getUserData(email).observe(viewLifecycleOwner) { userData ->
+            userData?.let {
+                binding.txtNombrePerfil.text = it["nombre"] as? String ?: "Sin nombre"
+                binding.editTextDescription.setText(it["descripcion"] as? String ?: "")
+                binding.txtUbicacion.text = "Nacimiento: ${it["fecha de nacimiento"] as? String ?: "No especificada"}"
+            }
+        }
+    }
+
+    private fun setupListeners() {
+        // Guardar automáticamente al perder foco
+        binding.editTextDescription.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                saveDescription()
+            }
         }
 
-        // Configurar el listener para el botón de cerrar sesión
+        // Botón de cerrar sesión
         binding.btnlogout.setOnClickListener {
-            salirAplicacion()
+            authViewModel.logout()
+            startActivity(Intent(requireActivity(), AuthActivity::class.java))
+            requireActivity().finish()
         }
-
-        return binding.root // Devolver la vista inflada
     }
 
-    private fun obtenerDatosUser (email: String) {
-        val db = FirebaseFirestore.getInstance()
-        val documentoRef = db.collection("usuarios").document(email)
-
-        documentoRef.get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    val nombre = document.getString("nombre") // Asegúrate de que el campo "nombre" existe en tu documento
-                    val email = document.getString("email") // Asegúrate de que el campo "email" existe en tu documento
-
-                    // Asignar los datos obtenidos a los TextViews
-                    binding.txtNombrePerfil.text = nombre ?: "Nombre no disponible"
-                    binding.txtViewMail.text = email ?: "Email no disponible"
-                } else {
-                    println("No se encontró el documento")
-                }
+    private fun setupObservers() {
+        authViewModel.operationStatus.observe(viewLifecycleOwner) { (success, message) ->
+            message?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { e ->
-                println("Error al obtener el documento: $e")
-            }
+        }
     }
 
-    private fun salirAplicacion() {
-        firebaseAuth.signOut() // Cerrar sesión
-        val intent = Intent(activity, AuthActivity::class.java) // Crear un Intent para AuthActivity
-        Toast.makeText(activity, "Cerraste sesión", Toast.LENGTH_SHORT).show() // Mostrar un mensaje
-        startActivity(intent) // Iniciar AuthActivity
-        activity?.finish() // Opcional: cerrar la actividad actual
+    private fun saveDescription() {
+        currentUserEmail?.let { email ->
+            val newDescription = binding.editTextDescription.text.toString()
+            authViewModel.updateUserDescription(email, newDescription)
+        }
     }
 }

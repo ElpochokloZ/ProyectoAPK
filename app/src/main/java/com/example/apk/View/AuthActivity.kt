@@ -6,12 +6,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.apk.Model.FireBaseAutenticacion
 import com.example.apk.ViewModel.AuthViewModel
 import com.example.apk.databinding.ActivityAuthBinding
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
-
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -26,47 +24,48 @@ class AuthActivity : AppCompatActivity() {
         binding = ActivityAuthBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //Analitycs events
-        val analytics:FirebaseAnalytics = FirebaseAnalytics.getInstance(this)
+        // Analytics events
+        val analytics: FirebaseAnalytics = FirebaseAnalytics.getInstance(this)
         val bundle = Bundle()
-        bundle.putString("message","Integracion de firebase completa")
+        bundle.putString("message", "Integración de Firebase completa")
         analytics.logEvent("InitScreen", bundle)
 
-        //ejecucion del click al darle el boton para pasar a otro fragment REGISTRO
+        // Inicialización de Firebase Auth y ViewModel
         firebaseAuth = Firebase.auth
-        viewModel= ViewModelProvider(this)[AuthViewModel::class.java]
+        viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
-        binding.txtRegistro.setOnClickListener{
+        // Click para ir a la actividad de registro
+        binding.txtRegistro.setOnClickListener {
             try {
                 val intent = Intent(this, RegActivity::class.java)
                 startActivity(intent)
-            }catch(e: Exception) {
+            } catch (e: Exception) {
                 Log.e("AuthActivity", "Error al iniciar RegActivity", e)
             }
-
         }
 
-        //ejecucion del click al darle el boton para pasar a otro fragment INICIO SESION
-        binding.btnInicioSesion.setOnClickListener{
+        // Click para iniciar sesión
+        binding.btnInicioSesion.setOnClickListener {
             val email = binding.editTextTextEmailAddress.text.toString().trim()
             val pass = binding.editTextTextPassword.text.toString().trim()
 
             if (email.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(this, "Email and password are required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener // para ejecucion si los campos estan vacios
+                Toast.makeText(this, "Email y contraseña son requeridos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
 
             viewModel.login(email, pass)
         }
 
+        // Observador para el estado de autenticación
         viewModel.authStatus.observe(this) { status ->
             val (isSuccess, message) = status
             if (isSuccess) {
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
-                finish() // Cierra AuthActivity para no volver atras
+                finish() // Cierra AuthActivity para no volver atrás
             } else {
-                Toast.makeText(this, "Login failed: $message", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error en el inicio de sesión: $message", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -74,15 +73,19 @@ class AuthActivity : AppCompatActivity() {
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
-        fun onStart() {
-            super.onStart()
-            if(firebaseAuth.currentUser != null){
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
+        // Click para recuperar contraseña
+        binding.txtRecuperarContra.setOnClickListener {
+            val intent = Intent(this, RecuperarContraActivity::class.java)
+            startActivity(intent)
         }
+    }
 
-
+    override fun onStart() {
+        super.onStart()
+        if (firebaseAuth.currentUser  != null) {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 }

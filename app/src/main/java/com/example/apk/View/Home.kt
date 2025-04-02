@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,9 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.apk.R
+import com.example.apk.ViewModel.AuthViewModel
 import com.example.apk.databinding.FragmentHomeBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -39,6 +42,7 @@ class Home : Fragment(), OnMapReadyCallback,
     private lateinit var firestore: FirebaseFirestore
     private val markers = mutableListOf<Marker>()
     private val auth = FirebaseAuth.getInstance()
+    private lateinit var authViewModel: AuthViewModel
 
     companion object {
         const val REQUEST_CODE_LOCATION = 0
@@ -67,6 +71,14 @@ class Home : Fragment(), OnMapReadyCallback,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Inicializar AuthViewModel
+        authViewModel = ViewModelProvider(this).get(AuthViewModel::class.java)
+        authViewModel.sharedLocations.observe(viewLifecycleOwner) { locations ->
+            locations?.let { updateMapWithSharedLocations(it) }
+        }
+
+        authViewModel.loadSharedLocations()
+
         // Inicializar Firestore
         firestore = Firebase.firestore
 
@@ -89,8 +101,8 @@ class Home : Fragment(), OnMapReadyCallback,
 
         // Configurar listeners del mapa
         with(map) {
-            setOnMyLocationButtonClickListener(this@Home)
             setOnMyLocationClickListener(this@Home)
+            setOnMyLocationButtonClickListener(this@Home)
             setOnMapLongClickListener(this@Home)
             setOnMarkerClickListener(this@Home)
         }
@@ -98,37 +110,6 @@ class Home : Fragment(), OnMapReadyCallback,
         enableLocation()
         loadUserMarkers()
     }
-
-    // Métodos de ubicación
-    private fun isLocationPermissionGranted() = ContextCompat.checkSelfPermission(
-        requireContext(),
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
-
-    private fun enableLocation() {
-        if (!::map.isInitialized) return
-        if (isLocationPermissionGranted()) {
-            try {
-                map.isMyLocationEnabled = true
-            } catch (e: SecurityException) {
-                showToast("Error al habilitar la ubicación")
-            }
-        } else {
-            requestLocationPermission()
-        }
-    }
-
-    private fun requestLocationPermission() {
-        if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            showToast("Necesitas aceptar los permisos de ubicación")
-        } else {
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                REQUEST_CODE_LOCATION
-            )
-        }
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -147,9 +128,103 @@ class Home : Fragment(), OnMapReadyCallback,
         }
     }
 
-    // Métodos para manejar marcadores
+    // Métodos de ubicación
+    private fun isLocationPermissionGranted(): Boolean {
+        val permissionCheck = ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+        Log.d("HomeFragment", "Permiso de ubicación concedido: ${permissionCheck == PackageManager.PERMISSION_GRANTED}")
+        return permissionCheck == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun enableLocation() {
+        if (!::map.isInitialized) return
+        if (isLocationPermissionGranted()) {
+            try {
+                map.isMyLocationEnabled = true
+            } catch (e: SecurityException) {
+                showToast("Error al habilitar la ubicación")
+            }
+        } else {
+            requestLocationPermission()
+        }
+    }
+
+    override fun onMyLocationClick(location: Location) {
+        showToast("Estás en ${location.latitude}, ${location.longitude}")
+    }
+
+    private fun updateMapWithSharedLocations(locations: List<AuthViewModel.SharedLocation>) {
+        map.clear() // Limpiar marcadores existentes
+
+        locations.forEach { location ->
+            val latLng = LatLng(location.latitude, location.longitude)
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(location.title)
+                    .snippet("Compartido por: ${location.userEmail}")
+            )?.let { marker ->
+                marker.tag = location.id
+            }
+        }
+
+        // Centrar en el primer marcador si existe
+        if (locations.isNotEmpty()) {
+            val firstLocation = locations.first()
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                LatLng(firstLocation.latitude, firstLocation.longitude),
+                10f
+            ))
+        }
+    }
+
+    private fun requestLocationPermission() {
+        if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            showToast("Necesitas aceptar los permisos de ubicación")
+        } else {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_CODE_LOCATION
+            )
+        }
+    }
+
+
+
+    // Modifica tu método onMapLongClick para guardar como ubicación compartida
     override fun onMapLongClick(latLng: LatLng) {
-        showAddMarkerDialog(latLng)
+        auth.currentUser?.let { user ->
+            showAddSharedLocationDialog(latLng, user.email ?: "Anónimo")
+        }
+    }
+
+
+    private fun showAddSharedLocationDialog(latLng: LatLng, userEmail: String) {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_add_marker, null)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Compartir ubicación")
+            .setView(dialogView)
+            .setPositiveButton("Compartir") { _, _ ->
+                val title = dialogView.findViewById<EditText>(R.id.editTitle).text.toString()
+                val description = dialogView.findViewById<EditText>(R.id.editSnippet).text.toString()
+
+                val sharedLocation = AuthViewModel.SharedLocation(
+                    userId = auth.currentUser?.uid ?: "",
+                    userEmail = userEmail,
+                    latitude = latLng.latitude,
+                    longitude = latLng.longitude,
+                    title = title.ifEmpty { "Ubicación compartida" },
+                    description = description
+                )
+
+                authViewModel.saveSharedLocation(sharedLocation)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showAddMarkerDialog(latLng: LatLng) {
@@ -256,13 +331,30 @@ class Home : Fragment(), OnMapReadyCallback,
 
     // Métodos de la interfaz del mapa
     override fun onMyLocationButtonClick(): Boolean {
-        showToast("Centrando en tu ubicación...")
-        return false
+        if (isLocationPermissionGranted()) {
+            if (::map.isInitialized) {
+                // Verifica si la ubicación está habilitada
+                if (map.isMyLocationEnabled) {
+                    val location = map.myLocation
+                    if (location != null) {
+                        val latLng = LatLng(location.latitude, location.longitude)
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10f))
+                        showToast("Centrando en tu ubicación...")
+                    } else {
+                        showToast("No se pudo obtener la ubicación actual. Asegúrate de que los servicios de ubicación estén habilitados.");
+                    }
+                } else {
+                    showToast("La ubicación no está habilitada en el mapa.");
+                }
+            } else {
+                showToast("El mapa no está inicializado.");
+            }
+        } else {
+            showToast("Permiso de ubicación no concedido.");
+        }
+        return true
     }
 
-    override fun onMyLocationClick(location: Location) {
-        showToast("Estás en ${location.latitude}, ${location.longitude}")
-    }
 
     // Método de ayuda
     private fun showToast(message: String) {
