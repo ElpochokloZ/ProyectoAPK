@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="10dp">
 
             <ImageView
                 android:id="@+id/imageView"
@@ -30,6 +30,21 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
                 android:src="@drawable/baseline_person_24" />
+
+
+
+                <ImageView
+                    android:id="@+id/camerabutton"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_camera"/>
+
+                <ImageView
+                    android:id="@+id/gallerybutton"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_gallery"/>
+
 
             <TextView
                 android:id="@+id/txtNombrePerfil"

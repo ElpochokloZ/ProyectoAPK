@@ -154,6 +154,31 @@ class AuthViewModel : ViewModel() {
             }
     }
 
+
+    fun deleteSharedLocation(sharedLocationId: String) {
+        db.collection("shared_locations").document(sharedLocationId)
+            .get()
+            .addOnSuccessListener { document ->
+                val sharedLocation = document.toObject(SharedLocation::class.java)
+                if (sharedLocation != null && sharedLocation.userEmail == auth.currentUser ?.email) {
+                    // Eliminar la ubicación compartida
+                    db.collection("shared_locations").document(sharedLocationId)
+                        .delete()
+                        .addOnSuccessListener {
+                            _operationStatus.postValue(Pair(true, "Ubicación compartida eliminada"))
+                        }
+                        .addOnFailureListener { e ->
+                            _operationStatus.postValue(Pair(false, "Error al eliminar: ${e.message}"))
+                        }
+                } else {
+                    _operationStatus.postValue(Pair(false, "No tienes permiso para eliminar esta ubicación compartida."))
+                }
+            }
+            .addOnFailureListener { e ->
+                _operationStatus.postValue(Pair(false, "Error al obtener la ubicación compartida: ${e.message}"))
+            }
+    }
+
     fun saveSharedLocation(location: SharedLocation) {
         db.collection("shared_locations")
             .add(location)
@@ -164,6 +189,8 @@ class AuthViewModel : ViewModel() {
                 _operationStatus.postValue(Pair(false, "Error al compartir: ${e.message}"))
             }
     }
+
+
     fun logout() {
         auth.signOut()
         _operationStatus.postValue(Pair(true, "Sesión cerrada"))

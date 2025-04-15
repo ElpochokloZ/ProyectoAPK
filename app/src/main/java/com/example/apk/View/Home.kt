@@ -55,9 +55,11 @@ class Home : Fragment(), OnMapReadyCallback,
         val longitude: Double = 0.0,
         val title: String = "Nuevo marcador",
         val snippet: String = "",
-        val userId: String = "", // Para asociar marcadores a usuarios
+        val userEmail: String = "", // Para asociar marcadores a usuarios
         @ServerTimestamp val createdAt: Date? = null
     )
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -94,6 +96,9 @@ class Home : Fragment(), OnMapReadyCallback,
         // Configurar el mapa
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        // Cargar Marcadores
+        fetchMarkers()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -155,7 +160,8 @@ class Home : Fragment(), OnMapReadyCallback,
         showToast("Estás en ${location.latitude}, ${location.longitude}")
     }
 
-    private fun updateMapWithSharedLocations(locations: List<AuthViewModel.SharedLocation>) {
+    // Al agregar marcadores desde shared_locations en updateMapWithSharedLocations:
+  fun updateMapWithSharedLocations(locations: List<AuthViewModel.SharedLocation>) {
         map.clear() // Limpiar marcadores existentes
 
         locations.forEach { location ->
@@ -166,7 +172,7 @@ class Home : Fragment(), OnMapReadyCallback,
                     .title(location.title)
                     .snippet("Compartido por: ${location.userEmail}")
             )?.let { marker ->
-                marker.tag = location.id
+                marker.tag = "shared_location_id_${location.id}" // Etiqueta para identificar como compartido
             }
         }
 
@@ -175,7 +181,7 @@ class Home : Fragment(), OnMapReadyCallback,
             val firstLocation = locations.first()
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 LatLng(firstLocation.latitude, firstLocation.longitude),
-                10f
+                25f
             ))
         }
     }
@@ -193,7 +199,8 @@ class Home : Fragment(), OnMapReadyCallback,
 
 
 
-    // Modifica tu método onMapLongClick para guardar como ubicación compartida
+
+    // Modifica tu metodo onMapLongClick para guardar como ubicación compartida
     override fun onMapLongClick(latLng: LatLng) {
         auth.currentUser?.let { user ->
             showAddSharedLocationDialog(latLng, user.email ?: "Anónimo")
@@ -213,8 +220,8 @@ class Home : Fragment(), OnMapReadyCallback,
                 val description = dialogView.findViewById<EditText>(R.id.editSnippet).text.toString()
 
                 val sharedLocation = AuthViewModel.SharedLocation(
-                    userId = auth.currentUser?.uid ?: "",
-                    userEmail = userEmail,
+                    userId = auth.currentUser ?.uid ?: "",
+                    userEmail = userEmail, // Asegúrate de que esto esté correcto
                     latitude = latLng.latitude,
                     longitude = latLng.longitude,
                     title = title.ifEmpty { "Ubicación compartida" },
@@ -239,13 +246,13 @@ class Home : Fragment(), OnMapReadyCallback,
                 val title = editTitle.text.toString()
                 val snippet = editSnippet.text.toString()
 
-                auth.currentUser?.uid?.let { userId ->
+                auth.currentUser?.email?.let { userEmail ->
                     val marker = MapMarker(
                         latitude = latLng.latitude,
                         longitude = latLng.longitude,
                         title = title.ifEmpty { "Marcador ${markers.size + 1}" },
                         snippet = snippet,
-                        userId = userId
+                        userEmail = userEmail
                     )
                     saveMarker(marker)
                 }
@@ -259,11 +266,9 @@ class Home : Fragment(), OnMapReadyCallback,
             .add(marker)
             .addOnSuccessListener { docRef ->
                 val markerWithId = marker.copy(id = docRef.id)
-                docRef.set(markerWithId)
-                    .addOnSuccessListener {
-                        addMarkerToMap(markerWithId)
-                        showToast("Marcador guardado")
-                    }
+                // No es necesario volver a establecer el documento, ya que add() ya lo hace
+                addMarkerToMap(markerWithId)
+                showToast("Marcador guardado")
             }
             .addOnFailureListener { e ->
                 showToast("Error al guardar: ${e.message}")
@@ -271,9 +276,9 @@ class Home : Fragment(), OnMapReadyCallback,
     }
 
     private fun loadUserMarkers() {
-        auth.currentUser?.uid?.let { userId ->
+        auth.currentUser ?.email?.let { userEmail -> // Cambiado de userId a userEmail
             firestore.collection(MARKERS_COLLECTION)
-                .whereEqualTo("userId", userId)
+                .whereEqualTo("userEmail", userEmail) // Cambiado de userId a userEmail
                 .get()
                 .addOnSuccessListener { result ->
                     result.forEach { doc ->
@@ -305,28 +310,75 @@ class Home : Fragment(), OnMapReadyCallback,
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
-        AlertDialog.Builder(requireContext())
+        val markerTag = marker.tag
+        val isSharedLocation = markerTag is String && markerTag.startsWith("shared_location_id_") // Ejemplo de cómo identificar
+
+        val builder = AlertDialog.Builder(requireContext())
             .setTitle(marker.title)
             .setMessage(marker.snippet ?: "¿Qué deseas hacer con este marcador?")
-            .setPositiveButton("Eliminar") { _, _ -> deleteMarker(marker) }
             .setNegativeButton("Cerrar", null)
-            .show()
+
+        if (isSharedLocation) {
+            builder.setPositiveButton("Eliminar compartido") { _, _ ->
+                val sharedLocationId = (markerTag as String).removePrefix("shared_location_id_")
+                authViewModel.deleteSharedLocation(sharedLocationId)
+                marker.remove() // Eliminar también del mapa local
+            }
+        } else {
+            builder.setPositiveButton("Eliminar mi marcador") { _, _ -> deleteMarker(marker) }
+        }
+
+        builder.show()
         return true
     }
 
     private fun deleteMarker(marker: Marker) {
         (marker.tag as? String)?.let { markerId ->
             firestore.collection(MARKERS_COLLECTION).document(markerId)
-                .delete()
-                .addOnSuccessListener {
-                    marker.remove()
-                    markers.remove(marker)
-                    showToast("Marcador eliminado")
+                .get()
+                .addOnSuccessListener { document ->
+                    // Verificar si el documento existe y si el userEmail coincide
+                    val mapMarker = document.toObject(MapMarker::class.java)
+                    if (mapMarker != null && mapMarker.userEmail == auth.currentUser ?.email) {
+                        // Eliminar el marcador
+                        firestore.collection(MARKERS_COLLECTION).document(markerId)
+                            .delete() // Cambiado de update a delete
+                            .addOnSuccessListener {
+                                // Eliminar el marcador de la interfaz
+                                marker.remove()
+                                markers.remove(marker)
+                                showToast("Marcador eliminado")
+                            }
+                            .addOnFailureListener { e ->
+                                showToast("Error al eliminar: ${e.message}")
+                            }
+                    } else {
+                        showToast("No tienes permiso para eliminar este marcador.")
+                    }
                 }
                 .addOnFailureListener { e ->
-                    showToast("Error al eliminar: ${e.message}")
+                    showToast("Error al obtener el marcador: ${e.message}")
                 }
+        } ?: run {
+            showToast("Error: ID de marcador no válido")
         }
+    }
+
+    private fun fetchMarkers() {
+        firestore.collection(MARKERS_COLLECTION)
+            .whereEqualTo("isDeleted", false) // Filtrar marcadores eliminados
+            .get()
+            .addOnSuccessListener { documents ->
+                markers.clear()
+                for (document in documents) {
+                    val marker = document.toObject(Marker::class.java)
+                    markers.add(marker)
+                }
+                loadUserMarkers()
+            }
+            .addOnFailureListener { e ->
+                showToast("Error al recuperar marcadores: ${e.message}")
+            }
     }
 
     // Métodos de la interfaz del mapa
@@ -338,7 +390,7 @@ class Home : Fragment(), OnMapReadyCallback,
                     val location = map.myLocation
                     if (location != null) {
                         val latLng = LatLng(location.latitude, location.longitude)
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10f))
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
                         showToast("Centrando en tu ubicación...")
                     } else {
                         showToast("No se pudo obtener la ubicación actual. Asegúrate de que los servicios de ubicación estén habilitados.");
